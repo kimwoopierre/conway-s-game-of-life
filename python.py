@@ -127,7 +127,7 @@ while True:
         elif event.type == MOUSEBUTTONUP:
             if event.button ==1:
                 mouse_x, mouse_y = event.pos
-                print(mouse_x//cell_size, mouse_y//cell_size) ----
+                print(mouse_x//cell_size, mouse_y//cell_size)
                 row = (mouse_x-my_grid.grid_x)//cell_size
                 col = (mouse_y-my_grid.grid_y)//cell_size
                 if 0<=row <len(grid_state) and 0<= col < len(grid_state[0]) and my_button_R.visible == False:                
