@@ -4,15 +4,19 @@ import os
 import pygame.freetype
 from pygame.locals import *
 from time import sleep
+from random import randint
+from openpyxl import Workbook
 FPS = 25
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,30)
+
+
 
 pygame.init()
 #display
 display_info = pygame.display.Info()
 display_width = display_info.current_w
 display_height = display_info.current_h
-# print(display_width, display_height)
+print(display_width, display_height)
 pygame.display.set_caption("game of life")
 window = pygame.display.set_mode((display_width, display_height-30)) 
 window_rect = window.get_rect()
@@ -31,8 +35,52 @@ Running = False
 draw_bool = False
 erase_bool = False
 is_dragging = False
+default = False
 clicked_cell = None
 
+#엑셀 만들기
+wb = Workbook()
+
+sheet = wb.active
+
+data = []
+for y in range(1,109):
+    y_data = []
+    for x in range(1,193):
+        result = sheet.cell(row=x,column=y,value=False)
+        y_data.append(result.value)
+
+    data.append(y_data)
+# a = sheet.cell(row=94,column=40).value = True
+data[94][40] = True
+# a = sheet.cell(row=93,column=41).value = True
+data[93][41] = True
+# a = sheet.cell(row=93,column=42).value = True
+data[93][42] = True
+# a = sheet.cell(row=94,column=42).value = True
+data[94][42] = True
+# a = sheet.cell(row=95,column=42).value = True
+data[95][42] = True
+
+    # sheet.cell((93,41)).value = True
+    # sheet.cell((93,42)).value = True
+    # sheet.cell((94,42)).value = True
+    # sheet.cell((95,42)).value = True
+
+# image = []
+# image.append((94,40))
+# image.append((93,41))
+# image.append((93,42))
+# image.append((94,42))
+# image.append((95,42))
+# for i in image:
+#     y= i[0]
+#     x= i[1]
+#     sheet.cell(row=x,column=y, value= True)
+wb.save("test.xlsx")
+
+grid_state = data
+# print(data)
 class Layer(pygame.sprite.Sprite):
     def __init__(self):
         super().__init__()
@@ -75,7 +123,6 @@ class GridSprite(pygame.sprite.Sprite):
 
 
 
-
 class ButtonSprite(pygame.sprite.Sprite):
     def __init__(self,surface, x, y, width, height):
         super().__init__()
@@ -89,6 +136,11 @@ class ButtonSprite(pygame.sprite.Sprite):
 def draw_cell(surface, row, col, color):
     cell_rect = pygame.Rect(row*cell_size+my_grid.grid_x+1, col*cell_size+my_grid.grid_y+1, cell_size-1, cell_size-1)
     pygame.draw.rect(surface, color, cell_rect)
+
+def randomize_color ():
+    random_color = tuple()
+    random_color = random_color+(randint(0,255),randint(0,255),randint(0,255))
+    return random_color
 
 def erase_cell (cells):
     for keys in cells.keys():
@@ -110,10 +162,10 @@ def run(grid_state,speed):
                     new_row = row + i
                     new_col = col + j
                     if (0 <= new_row < len(grid_state)) and (0 <= new_col < len(grid_state[0])):
-                        if cells[(new_row, new_col)] == Black:
+                        if cells[(new_row, new_col)] != White:
                             cnt += 1
             # 현재 셀의 상태에 따라 다음 상태 결정
-            if cell_color == Black:  # 현재 셀이 검은색인 경우
+            if cell_color != White:  # 현재 셀이 검은색인 경우
                 if cnt == 2 or cnt == 3:
                     next_state[row][col] = True  # 살아남음
                 else:
@@ -130,7 +182,8 @@ def run(grid_state,speed):
 
 #Text
 Title = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 100)
-descript = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 30)
+descript1 = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 30)
+descript2 = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 30)
 Run_Quit_text = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 25)
 running_text = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 200)
 
@@ -181,6 +234,7 @@ while True:
                 row = (mouse_x-my_grid.grid_x)//cell_size
                 col = (mouse_y-my_grid.grid_y)//cell_size
                 clicked_cell = ((row,col))
+                print(clicked_cell)
                 if 0<=row <len(grid_state) and 0<= col < len(grid_state[0]) and my_button_R.visible == False:                
                     grid_state[row][col] = not grid_state[row][col]
                 if my_button_R.rect.collidepoint(mouse_x, mouse_y) and my_button_R.visible == True:
@@ -222,36 +276,47 @@ while True:
 
     window.fill(White)
 
+
+    my_button_R.draw((50,50,50), 3)
+    my_button_Q.draw((50,50,50), 3)
+    Title.render_to(window, (display_width//2-250-50,display_height//3-70), "Game of life",style=1)
+    descript1.render_to(window,(display_width//2-260-50, display_height//3+80), "For play the game, press Run button", style=1)
+    descript2.render_to(window,(display_width//2-260-350, display_height//3+120), "Left Click to draw cell(dragging accepted) / ESC to reset / Enter(Return)key to start", style=1)
+    
+    Run_Quit_text.render_to(window, (display_width//2-85, display_height//2+15), "Run",fgcolor=White, style=1)
+    Run_Quit_text.render_to(window, (display_width//2+13, display_height//2+15), "Quit",fgcolor=White, style=1)
+
+    if Running == True:
+        run(grid_state, speed*20)
+        running_text.render_to(window, (display_width//3, display_height//3), "Running", fgcolor=(10,10,10,50), style=1)
+
+    if my_button_R.visible == False:
+        Title.size =0.1  
+        descript1.size = 0.1
+        descript2.size = 0.1
+        Run_Quit_text.size = 0.1
+        my_grid.draw_grid(window, cell_size)
+        default = True
+
     if draw_bool == True:
         for row in range(len(grid_state)):
             for col in range(len(grid_state[0])):
                 color = Black if grid_state[row][col] else White
                 cells[(row,col)] = color
                 draw_cell(window, row, col, color)
-
-    my_button_R.draw((50,50,50), 3)
-    my_button_Q.draw((50,50,50), 3)
-    Title.render_to(window, (display_width//2-250,display_height//3-70), "Game of life",style=1)
-    descript.render_to(window,(display_width//2-260, display_height//3+80), "For play the game, press enter(return) key", style=1)
-    Run_Quit_text.render_to(window, (display_width//2-85, display_height//2+15), "Run",fgcolor=White, style=1)
-    Run_Quit_text.render_to(window, (display_width//2+13, display_height//2+15), "Quit",fgcolor=White, style=1)
-
-    if Running == True:
-        run(grid_state, speed*50)
-        running_text.render_to(window, (display_width//3, display_height//3), "Running", fgcolor=(10,10,10,50), style=1)
-
-    if my_button_R.visible == False:
-        Title.size =0.1  
-        descript.size = 0.1
-        Run_Quit_text.size = 0.1
-        my_grid.draw_grid(window, cell_size)
+    if default == True:
+        for row in range(len(grid_state)):
+            for col in range(len(grid_state[0])):
+                color = Black if grid_state[row][col] else White
+                cells[(row,col)] = color
+                draw_cell(window, row, col, color)
     if erase_bool == True:
         erase_cell(cells)
         for row in range(len(grid_state)):
             for col in range(len(grid_state[0])):
                 grid_state[row][col] = False
         erase_bool = False
-    text_surface = pygame.font.Font(None, 32).render("Please type the speed(only number, default = 1): " + user_text, True, (0,0,0))
+    text_surface = pygame.font.Font(None, 32).render("Type the speed(Increase Number to decrease speed)(only number, default = 1): " + user_text, True, (0,0,0))
     window.blit(text_surface, (0,0))
     pygame.display.update()
     
