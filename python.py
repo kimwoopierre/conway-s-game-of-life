@@ -5,7 +5,8 @@ import pygame.freetype
 from pygame.locals import *
 from time import sleep
 from random import randint
-from openpyxl import Workbook
+import openpyxl as excel
+from openpyxl.styles import PatternFill
 FPS = 25
 os.environ['SDL_VIDEO_WINDOW_POS'] = "%d,%d" % (0,30)
 
@@ -39,16 +40,15 @@ default = False
 clicked_cell = None
 
 #엑셀 만들기
-import openpyxl as excel
-from openpyxl.styles import PatternFill
+
 wb = excel.load_workbook("qrcode01.xlsx")
 
 sheet = wb["Sheet1"]
 data =[]
 fill_color = PatternFill(start_color="FFFFFF")
 
-for y in range(1,109):
-    for x in range(1,193):
+for y in range(1,193):
+    for x in range(1,109):
         cell = sheet.cell(row=x, column=y)
         color = cell.fill.start_color.rgb
         if color == None:
@@ -56,9 +56,9 @@ for y in range(1,109):
             cell.fill = fill_color
 wb.save("qrcode01.xlsx")
 
-for y in range(1,109):
+for y in range(1,193):
     y_data = []
-    for x in range(1,193):
+    for x in range(1,109):
         cell = sheet.cell(row=x,column=y)
         color = cell.fill.start_color.rgb
         if color != "00000000":
@@ -139,6 +139,7 @@ def erase_cell (cells):
                 cells[key] = (255,255,255)
 
 def run(grid_state,speed):
+    global Running
     while Running:
         next_state = [[False for _ in range(len(grid_state[0]))] for _ in range(len(grid_state))]
         for x, cell_color in cells.items():
@@ -164,19 +165,22 @@ def run(grid_state,speed):
                 if cnt == 3:
                     next_state[row][col] = True  # 살아남음
         # 다음 상태를 현재 상태로 업데이트
-        for row in range(len(grid_state)):
-            for col in range(len(grid_state[0])):
-                grid_state[row][col] = next_state[row][col]
+        if next_state == grid_state:
+            Running = False
+            return grid_state
+        else:
+            for row in range(len(grid_state)):
+                for col in range(len(grid_state[0])):
+                    grid_state[row][col] = next_state[row][col]
+
         pygame.time.delay(speed)
         return grid_state
 
 #Text
-Title = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 100)
-descript1 = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 30)
-descript2 = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 30)
-Run_Quit_text = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 25)
-running_text = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 200)
-
+Title = pygame.freetype.Font("Arial.ttf", 100)
+descript1 = pygame.freetype.Font("Arial.ttf", 30)
+descript2 = pygame.freetype.Font("Arial.ttf", 30)
+Run_Quit_text = pygame.freetype.Font("Arial.ttf", 25)
 
 #Layers
 my_layer = Layer()
@@ -187,7 +191,7 @@ my_button_Q = ButtonSprite(window, display_width//2, display_height//2, 75,50)  
 my_layer.add_grid(my_grid)
 my_layer.add_button(my_button_Q, my_button_R)
 
-
+get_color = randomize_color()
 while True:
     for event in pygame.event.get():
         if event.type == QUIT:
@@ -199,6 +203,7 @@ while True:
                     erase_bool = True
                     draw_bool = False
                     cells.clear()
+                    get_color = randomize_color()
             elif event.key == K_RETURN:
                 speed_text = user_text
                 try:
@@ -279,7 +284,6 @@ while True:
 
     if Running == True:
         run(grid_state, speed*20)
-        running_text.render_to(window, (display_width//3, display_height//3), "Running", fgcolor=(10,10,10,50), style=1)
 
     if my_button_R.visible == False:
         Title.size =0.1  
@@ -292,15 +296,17 @@ while True:
     if draw_bool == True:
         for row in range(len(grid_state)):
             for col in range(len(grid_state[0])):
-                color = Black if grid_state[row][col] else White
+                color = get_color if grid_state[row][col] else White
                 cells[(row,col)] = color
                 draw_cell(window, row, col, color)
-    if default == True:
-        for row in range(len(grid_state)):
-            for col in range(len(grid_state[0])):
-                color = Black if grid_state[row][col] else White
-                cells[(row,col)] = color
-                draw_cell(window, row, col, color)
+
+    # if default == True:
+    #     for row in range(len(grid_state)):
+    #         for col in range(len(grid_state[0])):
+    #             color = Black if grid_state[row][col] else White
+    #             cells[(row,col)] = color
+    #             draw_cell(window, row, col, color)
+
     if erase_bool == True:
         erase_cell(cells)
         for row in range(len(grid_state)):
