@@ -39,45 +39,35 @@ default = False
 clicked_cell = None
 
 #엑셀 만들기
-wb = Workbook()
+import openpyxl as excel
+from openpyxl.styles import PatternFill
+wb = excel.load_workbook("qrcode01.xlsx")
 
-sheet = wb.active
+sheet = wb["Sheet1"]
+data =[]
+fill_color = PatternFill(start_color="FFFFFF")
 
-data = []
+for y in range(1,109):
+    for x in range(1,193):
+        cell = sheet.cell(row=x, column=y)
+        color = cell.fill.start_color.rgb
+        if color == None:
+            wb.active
+            cell.fill = fill_color
+wb.save("qrcode01.xlsx")
+
 for y in range(1,109):
     y_data = []
     for x in range(1,193):
-        result = sheet.cell(row=x,column=y,value=False)
-        y_data.append(result.value)
-
+        cell = sheet.cell(row=x,column=y)
+        color = cell.fill.start_color.rgb
+        if color != "00000000":
+            y_data.append(True)
+        else:
+            y_data.append(False)           
+        # if color == "FF000000":
+        # elif color == "00000000":
     data.append(y_data)
-# a = sheet.cell(row=94,column=40).value = True
-data[94][40] = True
-# a = sheet.cell(row=93,column=41).value = True
-data[93][41] = True
-# a = sheet.cell(row=93,column=42).value = True
-data[93][42] = True
-# a = sheet.cell(row=94,column=42).value = True
-data[94][42] = True
-# a = sheet.cell(row=95,column=42).value = True
-data[95][42] = True
-
-    # sheet.cell((93,41)).value = True
-    # sheet.cell((93,42)).value = True
-    # sheet.cell((94,42)).value = True
-    # sheet.cell((95,42)).value = True
-
-# image = []
-# image.append((94,40))
-# image.append((93,41))
-# image.append((93,42))
-# image.append((94,42))
-# image.append((95,42))
-# for i in image:
-#     y= i[0]
-#     x= i[1]
-#     sheet.cell(row=x,column=y, value= True)
-wb.save("test.xlsx")
 
 grid_state = data
 # print(data)
@@ -181,11 +171,12 @@ def run(grid_state,speed):
         return grid_state
 
 #Text
-Title = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 100)
-descript1 = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 30)
-descript2 = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 30)
-Run_Quit_text = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 25)
-running_text = pygame.freetype.Font("F:\\kimwo\\python\\qrcode\\---\\Arial.ttf", 200)
+Title = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 100)
+descript1 = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 30)
+descript2 = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 30)
+Run_Quit_text = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 25)
+running_text = pygame.freetype.Font("C:\\Users\\kimwo\\Documents\\파이썬\\Arial.ttf", 200)
+
 
 #Layers
 my_layer = Layer()
